@@ -26,13 +26,13 @@ canvas{position:absolute;inset:0;width:100%;height:100%}header{position:fixed;le
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <div class="bottom"><div class="hint" id="hint">每一个愿望，都值得一颗星星</div><form id="form"><input id="wish" aria-label="写下你的愿望" placeholder="写下你的愿望…" maxlength="120" autocomplete="off" required><button type="submit">放飞心愿 <span aria-hidden="true">↗</span></button></form><p class="footnote">点击星星，重温心愿 · 愿望保存在这台设备上</p></div>
 <aside class="popover" id="popover" hidden aria-label="星星中的愿望"><button class="close" aria-label="关闭愿望">×</button><small>属于你的那一颗星</small><p id="wish-text"></p></aside>
-<button class="pause" id="pause" aria-pressed="false" aria-label="暂停流星"><svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M5 4h3v12H5zM12 4h3v12h-3z"/></svg></button></main>
+</main>
 <script>
 (() => {
   'use strict';
   const canvas = document.querySelector('#sky'), ctx = canvas.getContext('2d');
   const layer = document.querySelector('#wishes'), form = document.querySelector('#form'), input = document.querySelector('#wish');
-  const popover = document.querySelector('#popover'), pause = document.querySelector('#pause');
+  const popover = document.querySelector('#popover');
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
   let w=innerWidth,h=innerHeight,stars=[],meteors=[],flights=[],last=0,elapsed=0,spawn=0,paused=reduced,toastTimer;
   let wishes=[];
@@ -52,9 +52,8 @@ canvas{position:absolute;inset:0;width:100%;height:100%}header{position:fixed;le
   function updateCount(){document.querySelector('#hint').textContent=wishes.length?`这片星空，已经珍藏了 ${wishes.length} 个心愿`:'每一个愿望，都值得一颗星星';}
   function addStar(item){const b=document.createElement('button');b.className='wish-star';b.style.left=item.x*100+'%';b.style.top=item.y*100+'%';b.style.animationDelay='0s';b.setAttribute('aria-label','查看愿望：'+item.text);b.addEventListener('click',()=>{document.querySelector('#wish-text').textContent=item.text;popover.hidden=false;const r=b.getBoundingClientRect();const half=popover.offsetWidth/2;popover.style.left=Math.max(half+16,Math.min(w-half-16,r.x+r.width/2))+'px';popover.style.top=Math.max(16,Math.min(h-popover.offsetHeight-110,r.bottom+12))+'px';});layer.appendChild(b);}
   form.addEventListener('submit',e=>{e.preventDefault();const text=input.value.trim();if(!text){input.value='';input.focus();return;}let point;for(let i=0;i<30;i++){point={x:rand(.09,.91),y:rand(.37,.70)};if(wishes.every(a=>Math.hypot((a.x-point.x)*w,(a.y-point.y)*h)>48))break;}const item={text,...point};wishes.push(item);let stored=true;try{localStorage.setItem('star-river-wishes-v1',JSON.stringify(wishes));}catch{stored=false;}const r=input.getBoundingClientRect();input.value='';input.blur();popover.hidden=true;updateCount();if(reduced){addStar(item);notify('你的愿望，已经在星河里闪耀');}else flights.push({item,sx:r.x+r.width*.5,sy:r.y,t:0});if(!stored){document.querySelector('.footnote').style.display='block';document.querySelector('.footnote').textContent='当前浏览器无法保存愿望，请保持此页面打开';}});
-  function syncPause(){pause.innerHTML=paused?'<svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="m6 3 11 7-11 7z"/></svg>':'<svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M5 4h3v12H5zM12 4h3v12h-3z"/></svg>';pause.setAttribute('aria-label',paused?'继续流星':'暂停流星');pause.setAttribute('aria-pressed',String(paused));}pause.addEventListener('click',()=>{paused=!paused;syncPause();});
   document.querySelector('.close').addEventListener('click',()=>{popover.hidden=true;});document.addEventListener('keydown',e=>{if(e.key==='Escape')popover.hidden=true;});document.addEventListener('pointerdown',e=>{if(!e.target.closest('.wish-star,.popover'))popover.hidden=true;});
-  document.addEventListener('visibilitychange',()=>{last=performance.now();});window.addEventListener('resize',resize);resize();for(let i=0;i<20;i++){const m=meteor(true);m.life=rand(.3,1);meteors.push(m);}wishes.forEach(addStar);updateCount();syncPause();requestAnimationFrame(render);
+  document.addEventListener('visibilitychange',()=>{last=performance.now();});window.addEventListener('resize',resize);resize();for(let i=0;i<20;i++){const m=meteor(true);m.life=rand(.3,1);meteors.push(m);}wishes.forEach(addStar);updateCount();requestAnimationFrame(render);
 })();
 </script>
 </body>
